@@ -8,17 +8,19 @@
         <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
             integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
             crossorigin=""></script>
-        <title>Welcome!</title>
+        <title>Private</title>
       </head>
     <body>
         <p id = "status"></p>
         <p id = "coords"></p>
+        <p id = "time"></p>
         <br/>
         <div id="map" style="height: 400px;"></div>
         <script>
             
             const status = document.querySelector('#status');
             const coords = document.querySelector('#coords');
+            const time = document.querySelector('#time');
 
             function success(position) {
                 const latitude  = position.coords.latitude;
@@ -26,6 +28,9 @@
 
                 status.textContent = 'Found you!';
                 coords.textContent = `Latitude: ${latitude} °, Longitude: ${longitude} °`;
+
+                const date = new Date()
+                time.textContent = `Vrijeme prijave: ${date}`
 
                 var mymap = L.map('map').setView([latitude, longitude], 17);
                 var marker = L.marker([latitude, longitude]).addTo(mymap);
