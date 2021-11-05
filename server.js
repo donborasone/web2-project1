@@ -11,7 +11,7 @@ app.set('view engine', 'ejs')
 
 const { auth, requiresAuth } = require('express-openid-connect'); 
 const { stringify } = require('querystring');
-const port = 4080;
+const port = process.env.PORT || 4080;
 
 const config = { 
   authRequired : false,
@@ -86,6 +86,7 @@ app.get("/sign-up", (req, res) => {
   });
 });
 
+/*
 https.createServer({
     key: fs.readFileSync('server.key'),
     cert: fs.readFileSync('server.cert')
@@ -93,3 +94,7 @@ https.createServer({
   .listen(port, function () {
     console.log(`Server running at https://localhost:${port}/`);
   });
+*/
+app.listen(port, function () {
+  console.log(`Server running at https://localhost:${port}/`);
+});
