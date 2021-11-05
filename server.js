@@ -7,7 +7,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 app.use(express.static('public'));
-app.set('view engine', 'pug')
+app.set('view engine', 'ejs')
 
 const { auth, requiresAuth } = require('express-openid-connect'); 
 const port = 4080;
@@ -37,6 +37,7 @@ app.get('/',  function (req, res) {
     }
     res.render('index', {user : req.user});
 });
+
 
 app.get('/private', requiresAuth(), function (req, res) {       
     const user = JSON.stringify(req.oidc.user);      
