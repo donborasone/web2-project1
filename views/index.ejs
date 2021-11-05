@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>OAuth2/OpenID login demo</title>
+        <meta charset="utf-8">
+        <meta name="robots" content="noindex, nofollow">
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
             integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
             crossorigin=""/>
         <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
             integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
             crossorigin=""></script>
+        <title>bb51652-web2-project1</title>
     </head>
     <body>
         <% if (user.isAuthenticated) { %>
@@ -15,15 +17,17 @@
         <% } %>
         <ul>
             <li>
-                <a href="/" title = "Home">Home</a>
+                <a href="/" title = "Prikaz Vaše lokacije">Prikaz Vaše lokacije</a>
             </li>
             <li>
-                <a href="/private" title = "Private content">Private</a>
+                <a href="/private" title = "Prikaz lokacije zadnjih 5 prijavljenih korisnika">
+                    Prikaz lokacije zadnjih 5 prijavljenih korisnika
+                </a>
             </li>
             <% if (user.isAuthenticated) { %>
                 <li>
                     <form action="/logout" method="get">
-                        <input type="submit" value="Logout">
+                        <input type="submit" value="Odjava">
                     </form>
                 </li>
             <% } else { %>
@@ -32,5 +36,41 @@
                 </li>
             <% } %>
         </ul>
+        <p id = "status"></p>
+        <p id = "coords"></p>
+        <br/>
+        <div id="map" style="height: 400px;"></div>
+        <script>
+            
+            const status = document.querySelector('#status');
+            const coords = document.querySelector('#coords');
+
+            function success(position) {
+                const latitude  = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                status.textContent = 'Vaša lokacija:';
+                coords.textContent = `Latitude: ${latitude} °, Longitude: ${longitude} °`;
+
+                var mymap = L.map('map').setView([latitude, longitude], 17);
+                var marker = L.marker([latitude, longitude]).addTo(mymap);
+                marker.bindPopup("<b>Vaša lokacija</b>")
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {   
+                    foo: 'bar', 
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(mymap);
+            }
+
+            function error() {
+                status.textContent = 'Nemoguće odrediti Vašu lokaciju.';
+            }
+
+            if(!navigator.geolocation) {
+                status.textContent = 'Geolocation nije podržana od strane Vašeg preglednika.';
+            } else {
+                navigator.geolocation.getCurrentPosition(success, error);
+            }
+        </script>
     </body>
 </html>
