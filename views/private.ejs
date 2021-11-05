@@ -1,12 +1,38 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Private</title>
+        <meta charset="utf-8">
+        <meta name="robots" content="noindex, nofollow">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+            integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+            crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+            crossorigin=""></script>
+        <title>bb51652-web2-project1</title>
     </head>
     <body>
-        <h1>This page is only for logged users</h1>
-        <h4>Your data is <%= user %></h4>
-        <a href="/" title="Home">Home</a>
+        <h1>Prikaz lokacija zadnjih 5 prijavljenih korisnika</h1>
+        <ul>
+            <li>
+                <a href="/" title = "Povratak">Povratak</a>
+            </li>
         </ul>
+        <div id="map" style="height: 400px;"></div>
+        <script>
+            let users = '<%-users%>'
+            users = JSON.parse(users)
+            let latitude = 45.78447
+            let longitude = 15.946051
+            var mymap = L.map('map').setView([latitude, longitude], 5);
+            for(var data of users){
+                var marker = L.marker([data[1], data[2]]).addTo(mymap);
+                marker.bindPopup("<b>" + data[0] + "</b><p>Datum prijave: " + data[3] + "</p>")
+            }
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {   
+                foo: 'bar', 
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(mymap);
+        </script>
     </body>
 </html>

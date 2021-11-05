@@ -20,8 +20,8 @@
                 <a href="/" title = "Prikaz Vaše lokacije">Prikaz Vaše lokacije</a>
             </li>
             <li>
-                <a href="/private" title = "Prikaz lokacije zadnjih 5 prijavljenih korisnika">
-                    Prikaz lokacije zadnjih 5 prijavljenih korisnika
+                <a id = "privateAnchor" href="/" title = "Pregled lokacija prijavljenih korisnika (samo ako je preuzeta i Vaša lokacija)">
+                    Pregled lokacija prijavljenih korisnika (samo ako je preuzeta i Vaša lokacija)
                 </a>
             </li>
             <% if (user.isAuthenticated) { %>
@@ -37,20 +37,20 @@
             <% } %>
         </ul>
         <p id = "status"></p>
-        <p id = "coords"></p>
         <br/>
         <div id="map" style="height: 400px;"></div>
         <script>
             
             const status = document.querySelector('#status');
-            const coords = document.querySelector('#coords');
+            const privateAnchor = document.querySelector('#privateAnchor')
 
             function success(position) {
                 const latitude  = position.coords.latitude;
                 const longitude = position.coords.longitude;
 
-                status.textContent = 'Vaša lokacija:';
-                coords.textContent = `Latitude: ${latitude} °, Longitude: ${longitude} °`;
+                status.textContent = `Vaša lokacija: (${latitude}°, ${longitude}°)`;
+                privateAnchor.href = `/private/${latitude}/${longitude}`
+                privateAnchor.textContent = 'Pogledajte lokaciju zadnjih 5 prijavljenih korisnika.'
 
                 var mymap = L.map('map').setView([latitude, longitude], 17);
                 var marker = L.marker([latitude, longitude]).addTo(mymap);
@@ -67,7 +67,7 @@
             }
 
             if(!navigator.geolocation) {
-                status.textContent = 'Geolocation nije podržana od strane Vašeg preglednika.';
+                status.textContent = 'Geolocation nije podržan od strane Vašeg preglednika.';
             } else {
                 navigator.geolocation.getCurrentPosition(success, error);
             }

@@ -10,6 +10,7 @@ app.use(express.static('public'));
 app.set('view engine', 'ejs')
 
 const { auth, requiresAuth } = require('express-openid-connect'); 
+const { stringify } = require('querystring');
 const port = 4080;
 
 const config = { 
@@ -35,13 +36,45 @@ app.get('/',  function (req, res) {
     if (req.user.isAuthenticated) {
         req.user.name = req.oidc.user.name;
     }
-    res.render('index', {user : req.user});
+    res.render('index', {
+      user: req.user
+    });
 });
 
+var log = [
+  ["pero.peric@fer.hr", 45.78447, 15.946051, new Date().toLocaleString('hr-BA')],
+  ["marko.boras@foi.hr", 44.78447, 14.946051, new Date().toLocaleString('hr-BA')],
+  ["nika.katura@fbf.hr", 47.78447, 13.946051, new Date().toLocaleString('hr-BA')],
+  ["toni.rezic@fer.hr", 42.78447, 13.946051, new Date().toLocaleString('hr-BA')],
+  ["stjepan.mlakic@fer.hr", 41.78447, 20.946051, new Date().toLocaleString('hr-BA')]
+]
 
-app.get('/private', requiresAuth(), function (req, res) {       
-    const user = JSON.stringify(req.oidc.user);      
-    res.render('private', {user}); 
+app.get('/private/:latitude/:longitude', requiresAuth(), function (req, res) {    
+    const user = JSON.stringify(req.oidc.user);
+    let latitude = req.params.latitude
+    let longitude = req.params.longitude
+    let time = new Date().toLocaleString('hr-BA')
+    let found = -1
+    for(let i in log){
+      let data = log[i]
+      let name = data[0]
+      if(name === req.oidc.user.name)
+        found = i
+    }
+    if(found === -1){
+      log.push([req.oidc.user.name, latitude, longitude, time])
+      if(log.length > 5)
+        log.shift()
+    }
+    else{
+      log[found][1] = latitude
+      log[found][2] = longitude
+      log[found][3] = time
+    }
+    res.render('private', {
+      user: user,
+      users: JSON.stringify(log)
+    }); 
 });
 
 app.get("/sign-up", (req, res) => {
