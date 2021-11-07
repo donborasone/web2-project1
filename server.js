@@ -19,7 +19,7 @@ const config = {
   authRequired : false,
   idpLogout : true, //login not only from the app, but also from identity provider
   secret: process.env.SECRET,
-  baseURL: `https://localhost:${port}`,
+  baseURL: process.env.APP_URL || `https://localhost:${port}`,
   clientID: process.env.CLIENT_ID,
   issuerBaseURL: 'https://dev-m1hgw9la.us.auth0.com',
   clientSecret: process.env.CLIENT_SECRET,
@@ -68,7 +68,6 @@ app.post('/save', requiresAuth(), function(req, res) {
   userTimes = userTimes.sort((a,b) => (a[1] < b[1]) ? 1 : ((b[1] < a[1]) ? -1 : 0))
   userTimes = userTimes.slice(0, 5)
   let locations = {}
-  console.log(userTimes)
   for(let value of userTimes){
     let userName = value[0]
     let userTime = value[1]
@@ -91,10 +90,16 @@ app.get("/sign-up", (req, res) => {
   });
 });
 
-https.createServer({
+if(process.env.PORT){
+  app.listen(port, function () {
+    console.log(`Server running at ${process.env.APP_URL}:${port}/`);
+  })
+}else{
+  https.createServer({
     key: fs.readFileSync('server.key'),
     cert: fs.readFileSync('server.cert')
   }, app)
   .listen(port, function () {
     console.log(`Server running at https://localhost:${port}/`);
   });
+}
