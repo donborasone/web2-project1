@@ -13,26 +13,63 @@
     </head>
     <body>
         <h1>Prikaz lokacija zadnjih 5 prijavljenih korisnika</h1>
+        <p id = "status"></p>
         <ul>
             <li>
-                <a href="/" title = "Povratak">Povratak</a>
+                <a href="/" title = "Početna stranica">Početna stranica</a>
             </li>
         </ul>
         <div id="map" style="height: 400px;"></div>
         <script>
-            let users = '<%-users%>'
-            users = JSON.parse(users)
-            let latitude = 45.78447
-            let longitude = 15.946051
-            var mymap = L.map('map').setView([latitude, longitude], 5);
-            for(var data of users){
-                var marker = L.marker([data[1], data[2]]).addTo(mymap);
-                marker.bindPopup("<b>" + data[0] + "</b><p>Datum prijave: " + data[3] + "</p>")
+            
+            const status = document.querySelector('#status');
+
+            async function success(position) {
+                const latitude  = position.coords.latitude;
+                const longitude = position.coords.longitude;
+                const time = new Date().toLocaleString('hr-BA')
+
+                status.textContent = `Vaša lokacija: (${latitude}°, ${longitude}°)`;
+
+                const myLocation = {latitude, longitude, time}
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(myLocation)
+                }
+                
+                const response = await fetch('/save', options)
+                let responseJSON = await response.json()
+                let locations =  responseJSON.locations
+                let currentUser = JSON.parse('<%- user %>')
+
+                var mymap = L.map('map').setView([latitude, longitude], 7);
+                for(const [user, data] of Object.entries(locations)){
+                    if(user === currentUser.name){
+                        var marker = L.marker([data[0], data[1]]).addTo(mymap);
+                        marker.bindPopup("<b>Vaša lokacija</b>")
+                    }else{
+                        var marker = L.marker([data[0], data[1]]).addTo(mymap);
+                        marker.bindPopup("<b>" + user + "</b><p>Datum prijave: " + data[2] + "</p>")
+                    }
+                }
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {   
+                    foo: 'bar', 
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(mymap);
             }
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {   
-                foo: 'bar', 
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(mymap);
+
+            function error() {
+                status.textContent = 'Potrebno je dohvatiti Vašu lokaciju za prikaz ostalih prijavljenih korisnika.';
+            }
+
+            if(!navigator.geolocation) {
+                status.textContent = 'Geolocation nije podržan od strane Vašeg preglednika.';
+            } else {
+                navigator.geolocation.getCurrentPosition(success, error);
+            }
         </script>
     </body>
 </html>

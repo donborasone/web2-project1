@@ -7,10 +7,12 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 app.use(express.static('public'));
+app.use(express.json());
 app.set('view engine', 'ejs')
 
 const { auth, requiresAuth } = require('express-openid-connect'); 
 const { stringify } = require('querystring');
+const { response } = require('express');
 const port = process.env.PORT || 4080;
 
 const config = { 
@@ -41,40 +43,47 @@ app.get('/',  function (req, res) {
     });
 });
 
-var log = [
-  ["pero.peric@fer.hr", 45.78447, 15.946051, new Date().toLocaleString('hr-BA')],
-  ["marko.boras@foi.hr", 44.78447, 14.946051, new Date().toLocaleString('hr-BA')],
-  ["nika.katura@fbf.hr", 47.78447, 13.946051, new Date().toLocaleString('hr-BA')],
-  ["toni.rezic@fer.hr", 42.78447, 13.946051, new Date().toLocaleString('hr-BA')],
-  ["stjepan.mlakic@fer.hr", 41.78447, 20.946051, new Date().toLocaleString('hr-BA')]
+app.get('/private', requiresAuth(), function (req, res) {    
+  const user = JSON.stringify(req.oidc.user);
+  res.render('private', {
+    user: user
+  }); 
+});
+
+let log = {
+  "pero.peric@fer.hr": [43.78447, 16.946051, new Date().toLocaleString('hr-BA')],
+  "marko.boras@foi.hr": [44.78447, 14.946051, new Date().toLocaleString('hr-BA')],
+  "nika.katura@fbf.hr": [47.78447, 13.946051, new Date().toLocaleString('hr-BA')],
+  "toni.rezic@fer.hr": [42.78447, 13.946051, new Date().toLocaleString('hr-BA')],
+  "stjepan.mlakic@fer.hr": [41.78447, 20.946051, new Date().toLocaleString('hr-BA')]
+}
+
+let users = [
+  "pero.peric@fer.hr", "marko.boras@foi.hr", "nika.katura@fbf.hr", "toni.rezic@fer.hr", "stjepan.mlakic@fer.hr"
 ]
 
-app.get('/private/:latitude/:longitude', requiresAuth(), function (req, res) {    
-    const user = JSON.stringify(req.oidc.user);
-    let latitude = req.params.latitude
-    let longitude = req.params.longitude
-    let time = new Date().toLocaleString('hr-BA')
-    let found = -1
-    for(let i in log){
-      let data = log[i]
-      let name = data[0]
-      if(name === req.oidc.user.name)
-        found = i
+app.post('/save', requiresAuth(), function(req, res) {
+  const user = req.oidc.user.name
+  const latitude = req.body.latitude
+  const longitude = req.body.longitude
+  const time = req.body.time
+  if(users.includes(user)){
+    console.log(user + ' vec u sustavu')
+    log[user][0] = latitude
+    log[user][1] = longitude
+    log[user][2] = time
+  }else{
+    users.push(user)
+    log[user] = [latitude, longitude, time]
+    if(users.length > 6){
+      let deletedUser = users.shift()
+      delete log[deletedUser]
     }
-    if(found === -1){
-      log.push([req.oidc.user.name, latitude, longitude, time])
-      if(log.length > 5)
-        log.shift()
-    }
-    else{
-      log[found][1] = latitude
-      log[found][2] = longitude
-      log[found][3] = time
-    }
-    res.render('private', {
-      user: user,
-      users: JSON.stringify(log)
-    }); 
+  }
+  res.json({
+    status: 'success',
+    locations: log
+  })
 });
 
 app.get("/sign-up", (req, res) => {
@@ -86,7 +95,6 @@ app.get("/sign-up", (req, res) => {
   });
 });
 
-/*
 https.createServer({
     key: fs.readFileSync('server.key'),
     cert: fs.readFileSync('server.cert')
@@ -94,7 +102,3 @@ https.createServer({
   .listen(port, function () {
     console.log(`Server running at https://localhost:${port}/`);
   });
-*/
-app.listen(port, function () {
-  console.log(`Server running at https://localhost:${port}/`);
-});

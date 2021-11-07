@@ -19,18 +19,23 @@
             <li>
                 <a href="/" title = "Prikaz Vaše lokacije">Prikaz Vaše lokacije</a>
             </li>
-            <li>
-                <a id = "privateAnchor" href="/" title = "Pregled lokacija prijavljenih korisnika (samo ako je preuzeta i Vaša lokacija)">
-                    Pregled lokacija prijavljenih korisnika (samo ako je preuzeta i Vaša lokacija)
-                </a>
-            </li>
             <% if (user.isAuthenticated) { %>
+                <li>
+                    <a href="/private" title = "Prijava">
+                        Pregled lokacija
+                    </a>
+                </li>
                 <li>
                     <form action="/logout" method="get">
                         <input type="submit" value="Odjava">
                     </form>
                 </li>
             <% } else { %>
+                <li>
+                    <a href="/private" title = "Prijava">
+                        Prijava
+                    </a>
+                </li>
                 <li>
                     <a href="/sign-up" title = "Sign up">Sign up</a>
                 </li>
@@ -42,15 +47,12 @@
         <script>
             
             const status = document.querySelector('#status');
-            const privateAnchor = document.querySelector('#privateAnchor')
 
             function success(position) {
                 const latitude  = position.coords.latitude;
                 const longitude = position.coords.longitude;
 
                 status.textContent = `Vaša lokacija: (${latitude}°, ${longitude}°)`;
-                privateAnchor.href = `/private/${latitude}/${longitude}`
-                privateAnchor.textContent = 'Pogledajte lokaciju zadnjih 5 prijavljenih korisnika.'
 
                 var mymap = L.map('map').setView([latitude, longitude], 17);
                 var marker = L.marker([latitude, longitude]).addTo(mymap);
