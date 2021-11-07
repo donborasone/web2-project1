@@ -27,11 +27,10 @@
             async function success(position) {
                 const latitude  = position.coords.latitude;
                 const longitude = position.coords.longitude;
-                const time = new Date().toLocaleString('hr-BA')
 
                 status.textContent = `Vaša lokacija: (${latitude}°, ${longitude}°)`;
 
-                const myLocation = {latitude, longitude, time}
+                const myLocation = {latitude, longitude}
                 const options = {
                     method: 'POST',
                     headers: {
@@ -43,17 +42,11 @@
                 const response = await fetch('/save', options)
                 let responseJSON = await response.json()
                 let locations =  responseJSON.locations
-                let currentUser = JSON.parse('<%- user %>')
 
                 var mymap = L.map('map').setView([latitude, longitude], 7);
                 for(const [user, data] of Object.entries(locations)){
-                    if(user === currentUser.name){
-                        var marker = L.marker([data[0], data[1]]).addTo(mymap);
-                        marker.bindPopup("<b>Vaša lokacija</b>")
-                    }else{
-                        var marker = L.marker([data[0], data[1]]).addTo(mymap);
-                        marker.bindPopup("<b>" + user + "</b><p>Datum prijave: " + data[2] + "</p>")
-                    }
+                    var marker = L.marker([data[0], data[1]]).addTo(mymap);
+                    marker.bindPopup("<b>" + user + "</b><p>Datum prijave: " + data[2] + "</p>")
                 }
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {   
                     foo: 'bar', 

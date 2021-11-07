@@ -43,46 +43,42 @@ app.get('/',  function (req, res) {
     });
 });
 
+let locationLog = {}
+
+let timeLog = {}
+
 app.get('/private', requiresAuth(), function (req, res) {    
+  let userName = req.oidc.user.name
+  let loggedInTime = req.oidc.user.updated_at
+  timeLog[userName] = loggedInTime
   const user = JSON.stringify(req.oidc.user);
   res.render('private', {
     user: user
   }); 
 });
 
-let log = {
-  "pero.peric@fer.hr": [43.78447, 16.946051, new Date().toLocaleString('hr-BA')],
-  "marko.boras@foi.hr": [44.78447, 14.946051, new Date().toLocaleString('hr-BA')],
-  "nika.katura@fbf.hr": [47.78447, 13.946051, new Date().toLocaleString('hr-BA')],
-  "toni.rezic@fer.hr": [42.78447, 13.946051, new Date().toLocaleString('hr-BA')],
-  "stjepan.mlakic@fer.hr": [41.78447, 20.946051, new Date().toLocaleString('hr-BA')]
-}
-
-let users = [
-  "pero.peric@fer.hr", "marko.boras@foi.hr", "nika.katura@fbf.hr", "toni.rezic@fer.hr", "stjepan.mlakic@fer.hr"
-]
-
 app.post('/save', requiresAuth(), function(req, res) {
   const user = req.oidc.user.name
   const latitude = req.body.latitude
   const longitude = req.body.longitude
-  const time = req.body.time
-  if(users.includes(user)){
-    console.log(user + ' vec u sustavu')
-    log[user][0] = latitude
-    log[user][1] = longitude
-    log[user][2] = time
-  }else{
-    users.push(user)
-    log[user] = [latitude, longitude, time]
-    if(users.length > 6){
-      let deletedUser = users.shift()
-      delete log[deletedUser]
-    }
+  locationLog[user] = [latitude, longitude]
+  var userTimes = Object.keys(timeLog).map(function(key) {
+    return [key, timeLog[key]];
+  });
+  userTimes = userTimes.sort((a,b) => (a[1] < b[1]) ? 1 : ((b[1] < a[1]) ? -1 : 0))
+  userTimes = userTimes.slice(0, 5)
+  let locations = {}
+  console.log(userTimes)
+  for(let value of userTimes){
+    let userName = value[0]
+    let userTime = value[1]
+    let userLatitude = locationLog[userName][0]
+    let userLongitude = locationLog[userName][1]
+    locations[userName] = [userLatitude, userLongitude, new Date(userTime).toLocaleString()]
   }
   res.json({
     status: 'success',
-    locations: log
+    locations: locations
   })
 });
 
